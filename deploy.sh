@@ -1,4 +1,7 @@
 #!/bin/bash
+# update the submodules
+git submodule init
+git submodule update
 
 targetBaseDir=/var/www/virtual/$USER
 branch=$(git branch --show-current)
