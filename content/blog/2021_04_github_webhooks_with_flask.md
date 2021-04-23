@@ -47,7 +47,6 @@ To handle the events from the webhook, a function must be implemented in the fla
 
 The payload of the event can be read as json from `request.json`. Depending on its values the application logic can perform actions:
 ```python
-
 from flask import request
 
 @app.route("/github-webhook", methods=['POST'])
