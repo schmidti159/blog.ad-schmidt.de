@@ -1,6 +1,6 @@
 +++
-title = "Consuming GitHub WebHooks with Python / Flask"
-date = "2021-04-07T12:42:47+02:00"
+title = "Consuming GitHub WebHooks with Python and Flask"
+date = "2021-04-23T21:20:47+02:00"
 
 description = "How to consume webhooks from GitHub with the python micro web framework flask"
 
@@ -26,7 +26,7 @@ However it is possible to send events for almost anything that happens to your r
 ### Flask
 [Flask](https://flask.palletsprojects.com/) is a micro web framework that can be used to write simple rest endpoints in python. 
 
-To provide a POST endpoint for the GitHub webhook to call is as easy as putting a decorator with the endpoint and method on a function:
+Providing a POST endpoint for the GitHub webhook to call is as easy as putting the decorator `@app.route` with the endpoint and http method on a function:
 ```python
 @app.route("/github-webhook", methods=['POST'])
 def githubWebhook():
@@ -38,7 +38,7 @@ On GitHub open the repository and navigate to “Settings” > “Webhooks” an
 
 Enter the URL where your flask app will be deployed and select Content type 'application/json'.
 
-For my use case it was enough to send just `push` events.
+For this use case it was enough to only send `push` events.
 
 When you confirm this new webhook GitHub will send a ping to it, which will probably fail at this time.
 
@@ -63,15 +63,15 @@ def githubWebhook():
 
 The return value of the method will be returned to GitHub. It does not matter, what you send here, but it can be used for debugging purposes.
 
-The structure of the json payload is described [here](https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#push)
+The structure of the json payload is described [here](https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#push).
 
 ## Securing the endpoint with a secret
 If you looked closely when configuring the Webhook on GitHub, you might have seen, there is also a `secret`, that can be configured for the web hook.
 This can be used to make sure that no one except GitHub is able to trigger any actions.
 
-For the secret generate a long random passphrase (you don't need to remember it, just save it in a file).
+For the secret generate a long random passphrase. You don't need to remember it, just save it in an encrypted keystore.
 
-For every http-call GitHub will use the the secret and calculate a [hmac](https://de.wikipedia.org/wiki/Keyed-Hash_Message_Authentication_Code) from the complete payload of the message. The hmac will then be sent as the header `X-Hub-Signature-256`.
+For every http call GitHub will use the the secret and calculate a [hmac](https://de.wikipedia.org/wiki/Keyed-Hash_Message_Authentication_Code) from the complete payload of the message. The hmac will then be sent as the header `X-Hub-Signature-256`.
 
 So to verify the signature we have to calculate the same hmac and compare it with the header sent:
 ```python
@@ -86,22 +86,30 @@ def githubWebhook():
         return 'signature verification failed'
 
 def verifySignature():
-    signature = "sha256="+hmac.new(bytes(API_SECRET , 'utf-8'), msg = request.data, digestmod = hashlib.sha256).hexdigest().lower()
+    signature = "sha256="+hmac.new(
+            bytes(API_SECRET , 'utf-8'), 
+            msg = request.data, 
+            digestmod = hashlib.sha256
+        ).hexdigest().lower()
     return hmac.compare_digest(signature, request.headers['X-Hub-Signature-256'])
 ```
 
 ### `hmac.compare_digest`
-Why use such a weird function to compare strings? A normal string compare seeks to be efficient. This means, that strings that differ in the first characters will result in faster (negative) comparison result.
+Why use such a weird function to compare strings?
 
-In a security sensitive area, like comparing signatures this is bad as these timing differences can be used to send an message with the correct signature without knowing the secret. The attacker can send a random signature and measure how long the server takes to respond. He then changes the first character. When the server takes longer to respond, the character is probably correct and the attacker can try changing the second character until he has the correct signature.
+A normal string compare seeks to be efficient. This means, that strings that differ in the first characters will result in a faster (negative) comparison result.
 
-For a signature with a length of $n$ with $m$ possible characters this attack only needs $n \cdot m$ tries instead of needing to brute force all possible $n^m$ combinations.
+In a security sensitive area, like comparing signatures, this is bad as these timing differences can be used to send a message with the correct signature without knowing the secret. 
+
+The attacker can send a random signature and measure how long the server takes to respond. He then changes the first character. When the server takes longer to respond, the character is probably correct and the attacker can try changing the second character until he has the correct signature.
+
+For a signature with a length of $n$ characters with $m$ possible characters this attack only needs $n \cdot m$ tries instead of needing to brute force all possible $m^n$ combinations.
 
 ### `from secrets import API_SECRET`
 **Never commit your secrets!**
-In this case the secret is stored in [secrets.py](https://github.com/schmidti159/api.ad-schmidt.de/blob/main/secrets.py.template). This file is also added in the [.gitignore](https://github.com/schmidti159/api.ad-schmidt.de/blob/main/.gitignore#L5), so I also never accidentally add it.
+In this case the secret is stored in [secrets.py](https://github.com/schmidti159/api.ad-schmidt.de/blob/main/secrets.py.template). This file is also added to the [.gitignore](https://github.com/schmidti159/api.ad-schmidt.de/blob/main/.gitignore#L5), so I also never accidentally add it.
 
-Secrets are better kept in keystore like [KeePassXC](https://keepassxc.org/).
+Secrets are better kept in an encrypted keystore like [KeePassXC](https://keepassxc.org/).
 
 ## Debugging
 This is probably the most important part, if you plan to write this kind of app yourself.
@@ -110,7 +118,7 @@ On the page you used to add a new webhook to your repository GitHub will show al
 
 So it is enough to do one push to your repository and then retrigger this one event as often as you need to fix your code.
 
-For me there are currently more redeliveries than original events 😉
+At the time of writing this there are currently more redeliveries than original events for my blog repo 😉
 
 ## Further reading
 * GitHub Documentation on Webhooks: https://docs.github.com/en/developers/webhooks-and-events/about-webhooks
