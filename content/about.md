@@ -4,6 +4,7 @@ menu = "main"
 +++
 
 # About
+![Daniel Schmidt](/images/about.jpg "Daniel Schmidt")
 
 I am a father, hobbyist drummer and full stack software developer, living in Bamberg, Germany.
 
