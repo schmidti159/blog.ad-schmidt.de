@@ -7,6 +7,7 @@ targetBaseDir=/var/www/virtual/$USER
 branch=$(git branch --show-current)
 options=
 echo $branch
+export HUGO_BRANCH=$branch
 if [ $branch = "main" ]
 then
     targetDir="$targetBaseDir/blog.ad-schmidt.de"
