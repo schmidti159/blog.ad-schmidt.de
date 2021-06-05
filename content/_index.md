@@ -1,7 +1,12 @@
-# Hello world
++++
+title = "About"
++++
 
-Hi there, 
+# About
+I am a father, hobbyist drummer and full stack software developer, living in Bamberg, Germany.
 
-if you found this blog, I am happy but also quite surprised, as I did not write much content on it yet (as of  April 2021).
+In my day job I am developing solutions for technical documenation with [DOCUFY](https://docufy.de) in Java and XSLT.
 
-However, welcome :-) I hope you find interesting content here ;-)
+This blog however, is focussed around other hobby projects I do in my free time.
+
+It is mainly meant to motivate me to finish these projects. Also I hope that some person that reads about the bugs/issues I had can learn from them the same way I did.
